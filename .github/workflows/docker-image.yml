@@ -1,18 +1,28 @@
 name: Docker Image CI
-
-on:
+'on':
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
-
+    branches:
+      - main
 jobs:
-
-  build:
-
+  build_job:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag react-docker-demo:$(date +%s)
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        run: 'docker build . --file Dockerfile --tag react-docker-demo:$(date +%s)'
+  push_job:
+    needs: build_job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Push to Docker Hub
+        uses: docker/build-push-action@v3
+        with:
+          username: '${{ vars.DOCKER_USER_ID }}'
+          password: '${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}'
+          repository: '${{ vars.DOCKER_USER_ID }}/react-docker-demo'
+          tags: latest
